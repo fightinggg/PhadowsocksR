@@ -1,13 +1,21 @@
 package com.example.psr;
 
+import com.example.psr.utils.HexUtils;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.CharsetUtil;
+
+import java.nio.charset.StandardCharsets;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -35,7 +43,12 @@ public class Main {
                                 public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
                                     //获取客户端发送过来的消息
                                     ByteBuf byteBuf = (ByteBuf) msg;
-                                    System.out.println("收到客户端" + ctx.channel().remoteAddress() + "发送的消息：\n" + byteBuf.toString(CharsetUtil.UTF_8) + "$消息结束\n\n");
+                                    try {
+                                        String msgString = HexUtils.toString(byteBuf.toString(StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8), 2, 8);
+                                        System.out.println("收到客户端" + ctx.channel().remoteAddress() + "发送的消息：\n" + msgString);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                 }
 
                                 @Override
@@ -64,3 +77,9 @@ public class Main {
     }
 
 }
+
+/**
+ * curl -x http://localhost:1080 baidu.com
+ * curl -x https://localhost:1080 baidu.com
+ * curl -x socks5://localhost:1080 baidu.com
+ */
