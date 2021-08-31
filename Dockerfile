@@ -7,6 +7,6 @@ RUN mvn package
 
 FROM openjdk:16
 COPY --from=0 /app/target/PhadowsocksR-1.0-SNAPSHOT-jar-with-dependencies.jar /app/psr.jar
-CMD java -jar psr.jar -port 1080
+CMD java -jar /app/psr.jar -port 1080
 
 

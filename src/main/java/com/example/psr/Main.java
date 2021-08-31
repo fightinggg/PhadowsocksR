@@ -17,8 +17,10 @@ import io.netty.handler.codec.socksx.v5.Socks5CommandRequest;
 import io.netty.handler.codec.socksx.v5.Socks5CommandRequestDecoder;
 import io.netty.handler.codec.socksx.v5.Socks5InitialRequestDecoder;
 import io.netty.handler.codec.socksx.v5.Socks5ServerEncoder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
 
+@Slf4j
 public class Main {
     public static void main(String[] args) throws Exception {
         CommandLineParser parser = new GnuParser();
@@ -35,7 +37,7 @@ public class Main {
                     java -jar psr.jar -port 1080
                     java -jar psr.jar
                     """;
-            System.out.println(info);
+            log.info(info);
             System.exit(-1);
         }
         int port = Integer.parseInt(commandLine.getOptionValue("port", "1080"));
@@ -55,7 +57,7 @@ public class Main {
                         }
                     });
             ChannelFuture channelFuture = bootstrap.bind(port).sync();
-            System.out.printf("psr start at %d ...%n", port);
+            log.info("psr start at {} ...%n", port);
             channelFuture.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();

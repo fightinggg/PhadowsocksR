@@ -2,16 +2,19 @@ package com.example.psr;
 
 import com.example.psr.utils.ByteBufUtils;
 import com.example.psr.utils.ByteBufVisiable;
+import com.example.psr.utils.ToStringObject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+@Slf4j
 public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapter {
 
     private String state = "init";
@@ -35,7 +38,7 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
                  *    appear in the METHODS field.
                  */
                 byte[] bytes = ByteBufUtils.readAll(msg);
-                System.out.println(ByteBufVisiable.toString("client >> ", bytes));
+                log.debug("\n{}", new ToStringObject(() -> ByteBufVisiable.toString("client >> ", bytes)));
 
                 /*
                  *  The server selects from one of the methods given in METHODS, and
@@ -60,7 +63,7 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
                  *           o  X'FF' NO ACCEPTABLE METHODS
                  */
                 byte[] resBytes = new byte[]{5, 0};
-                System.out.println(ByteBufVisiable.toString("client << ", resBytes));
+                log.debug("\n{}", new ToStringObject(() -> ByteBufVisiable.toString("client << ", resBytes)));
                 ctx.writeAndFlush(Unpooled.copiedBuffer(resBytes));
 
                 state = "command";
@@ -109,7 +112,7 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
                  *
                  */
                 byte[] bytes = ByteBufUtils.readAll(msg);
-                System.out.println(ByteBufVisiable.toString("client >> ", bytes));
+                log.debug("\n{}", new ToStringObject(() -> ByteBufVisiable.toString("client >> ", bytes)));
                 String host = "";
                 int port = 80;
                 if (bytes[3] == 1) {
@@ -123,12 +126,12 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
                 } else {
                     throw new RuntimeException("error");
                 }
-                //System.out.println("proxy to " + host + ":" + port);
+                log.debug("proxy to " + host + ":" + port);
                 client = TcpClient.connect(host, port, new SimpleChannelInboundHandler<>() {
                     @Override
                     protected void channelRead0(ChannelHandlerContext proxyCtx, Object proxyMsg) throws Exception {
                         byte[] bytes = ByteBufUtils.readAll((ByteBuf) proxyMsg);
-                        System.out.println(ByteBufVisiable.toString("server >> ", bytes));
+                        log.debug("\n{}", new ToStringObject(() -> ByteBufVisiable.toString("server >> ", bytes)));
                         ctx.writeAndFlush(Unpooled.copiedBuffer(bytes));
                     }
                 });
@@ -177,14 +180,14 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
                  *
                  */
                 byte[] resBytes = new byte[]{5, 0, 0, 1, (byte) 192, (byte) 168, 1, 1, 0, 80};
-                System.out.println(ByteBufVisiable.toString("client << ", resBytes));
+                log.debug("\n{}", new ToStringObject(() -> ByteBufVisiable.toString("client << ", resBytes)));
                 ctx.writeAndFlush(Unpooled.copiedBuffer(resBytes));
 
                 state = "proxy";
             }),
             Map.entry("proxy", (ctx, msg) -> {
                 byte[] bytes = ByteBufUtils.readAll(msg);
-                System.out.println(ByteBufVisiable.toString("server >> ", bytes));
+                log.debug("\n{}", new ToStringObject(() -> ByteBufVisiable.toString("server >> ", bytes)));
                 client.channel().writeAndFlush(Unpooled.copiedBuffer(bytes));
             })
     );
@@ -198,7 +201,7 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("complete");
+        log.debug("complete");
     }
 
 
