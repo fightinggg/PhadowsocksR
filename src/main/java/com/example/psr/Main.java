@@ -32,34 +32,10 @@ public class Main {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {
                             socketChannel.pipeline().addLast(new NoAuthenticationRequiredChannel());
-
-//                            socketChannel.pipeline()
-//                                    .addLast(Socks5ServerEncoder.DEFAULT)
-//                                    .addLast(new Socks5InitialRequestDecoder())
-//                                    .addLast(new SimpleChannelInboundHandler<DefaultSocks5InitialRequest>() {
-//
-//                                        @Override
-//                                        protected void channelRead0(ChannelHandlerContext ctx, DefaultSocks5InitialRequest msg) throws Exception {
-//                                            if (msg.authMethods().contains(Socks5AuthMethod.NO_AUTH)) {
-//                                                ctx.writeAndFlush(new DefaultSocks5InitialResponse(Socks5AuthMethod.NO_AUTH));
-//                                                ctx.pipeline().remove(Socks5InitialRequestDecoder.class);
-//                                                ctx.pipeline().remove(this);
-//                                            }
-//                                        }
-//                                    })
-//                                    //  (  5)(  1) (  0)(  1) (220)(181) ( 38)(239) (191)(189) (  0)( 80)
-//                                    .addLast(new Socks5CommandRequestDecoder())
-//                                    .addLast(new SimpleChannelInboundHandler<Socks5CommandRequest>() {
-//                                        @Override
-//                                        protected void channelRead0(ChannelHandlerContext ctx, Socks5CommandRequest msg) throws Exception {
-//                                            System.out.println(msg);
-//                                        }
-//                                    });
-
                         }
                     });
-            ChannelFuture channelFuture = bootstrap.bind(1080).sync();
-            System.out.println("psr start at 1080 ...");
+            ChannelFuture channelFuture = bootstrap.bind(9999).sync();
+            System.out.println("psr start at 9999 ...");
             channelFuture.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();

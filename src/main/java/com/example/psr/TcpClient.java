@@ -15,60 +15,25 @@ import java.io.Closeable;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-public class TcpClient implements Closeable {
-    private final ChannelFuture channelFuture;
-    private volatile ChannelHandlerContext ctx;
+public class TcpClient {
 
-    TcpClient(SimpleChannelInboundHandler simpleChannelInboundHandler) {
-        Bootstrap clientBootstrap = new Bootstrap();
-        EventLoopGroup group = new NioEventLoopGroup();
-        clientBootstrap.group(group);
-        clientBootstrap.channel(NioSocketChannel.class);
-        clientBootstrap.remoteAddress(new InetSocketAddress(80));
-        clientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
-            protected void initChannel(SocketChannel socketChannel) {
-                socketChannel.pipeline().addLast(simpleChannelInboundHandler);
-                socketChannel.pipeline().addLast(new SimpleChannelInboundHandler() {
-                    @Override
-                    public void channelActive(ChannelHandlerContext ctx2) throws Exception {
-                        super.channelActive(ctx2);
-                        ctx = ctx2;
-                    }
-
-                    @Override
-                    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-
-                    }
-                });
-            }
-        });
-        channelFuture = clientBootstrap.connect();
-        new Thread(()-> {
-            try {
-                channelFuture.sync();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public void send(ByteBuf byteBuf) {
-        while (ctx == null) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        ctx.writeAndFlush(byteBuf);
-    }
-
-    @Override
-    public void close() {
+    public static ChannelFuture connect(String host, int port, SimpleChannelInboundHandler<?> simpleChannelInboundHandler) {
         try {
-            channelFuture.channel().closeFuture().sync();
+            Bootstrap clientBootstrap = new Bootstrap();
+            EventLoopGroup group = new NioEventLoopGroup();
+            clientBootstrap.group(group);
+            clientBootstrap.channel(NioSocketChannel.class);
+            clientBootstrap.remoteAddress(new InetSocketAddress(host, port));
+            clientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
+                protected void initChannel(SocketChannel socketChannel) {
+                    socketChannel.pipeline().addLast(simpleChannelInboundHandler);
+                }
+            });
+
+            return clientBootstrap.connect().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        return null;
     }
 }
