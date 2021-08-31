@@ -17,9 +17,29 @@ import io.netty.handler.codec.socksx.v5.Socks5CommandRequest;
 import io.netty.handler.codec.socksx.v5.Socks5CommandRequestDecoder;
 import io.netty.handler.codec.socksx.v5.Socks5InitialRequestDecoder;
 import io.netty.handler.codec.socksx.v5.Socks5ServerEncoder;
+import org.apache.commons.cli.*;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+        CommandLineParser parser = new GnuParser();
+
+        Options options = new Options();
+        options.addOption("p", "port", true, "port");
+
+        CommandLine commandLine = null;
+        try {
+            commandLine = parser.parse(options, args);
+        } catch (ParseException e) {
+            String info = """
+                    could not parse your command line, please use
+                    java -jar psr.jar -port 1080
+                    java -jar psr.jar
+                    """;
+            System.out.println(info);
+            System.exit(-1);
+        }
+        int port = Integer.parseInt(commandLine.getOptionValue("port", "1080"));
+
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -34,8 +54,8 @@ public class Main {
                             socketChannel.pipeline().addLast(new NoAuthenticationRequiredChannel());
                         }
                     });
-            ChannelFuture channelFuture = bootstrap.bind(9999).sync();
-            System.out.println("psr start at 9999 ...");
+            ChannelFuture channelFuture = bootstrap.bind(port).sync();
+            System.out.printf("psr start at %d ...%n", port);
             channelFuture.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
