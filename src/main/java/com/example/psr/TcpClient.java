@@ -22,7 +22,7 @@ public class TcpClient implements Closeable {
             Bootstrap clientBootstrap = new Bootstrap();
             group = new NioEventLoopGroup();
             clientBootstrap.group(group);
-            clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000);
+            clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 60000);
             clientBootstrap.channel(NioSocketChannel.class);
             clientBootstrap.remoteAddress(new InetSocketAddress(host, port));
             clientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
