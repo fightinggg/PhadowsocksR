@@ -2,26 +2,27 @@ package com.example.psr;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
-public class TcpClient {
+@Slf4j
+public class TcpClient implements Closeable {
+    EventLoopGroup group;
+    ChannelFuture channelFuture;
 
-    public static ChannelFuture connect(String host, int port, SimpleChannelInboundHandler<?> simpleChannelInboundHandler) {
+    public TcpClient(String host, int port, SimpleChannelInboundHandler<?> simpleChannelInboundHandler) {
         try {
             Bootstrap clientBootstrap = new Bootstrap();
-            EventLoopGroup group = new NioEventLoopGroup();
+            group = new NioEventLoopGroup();
             clientBootstrap.group(group);
+            clientBootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000);
             clientBootstrap.channel(NioSocketChannel.class);
             clientBootstrap.remoteAddress(new InetSocketAddress(host, port));
             clientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
@@ -30,10 +31,24 @@ public class TcpClient {
                 }
             });
 
-            return clientBootstrap.connect().sync();
+            channelFuture = clientBootstrap.connect().sync();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.error("", e);
         }
-        return null;
     }
+
+    public void send(ByteBuf byteBuf) {
+        channelFuture.channel().writeAndFlush(byteBuf);
+    }
+
+    @Override
+    public void close() throws IOException {
+        try {
+            channelFuture.channel().closeFuture().sync();
+            group.shutdownGracefully();
+        } catch (InterruptedException e) {
+            log.error("", e);
+        }
+    }
+
 }
