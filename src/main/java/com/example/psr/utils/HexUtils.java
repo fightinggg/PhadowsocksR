@@ -16,7 +16,7 @@ public class HexUtils {
                 hex.append(" ");
             }
             while (hex.length() < blockSize * groupSize * 2 + groupSize - 1) {
-                hex.append("  ");
+                hex.append(" ");
             }
             res.append(hex).append("  ").append(view).append("\n");
         }
