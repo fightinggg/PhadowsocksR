@@ -182,6 +182,7 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
                     log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("client << ", resBytes)));
                     ctx.writeAndFlush(Unpooled.copiedBuffer(resBytes));
                     ctx.close();
+                    return;
                 }
 
                 byte[] resBytes = new byte[]{5, 0, 0, 1, (byte) 192, (byte) 168, 1, 1, 0, 80};
