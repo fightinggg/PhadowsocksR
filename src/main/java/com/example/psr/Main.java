@@ -53,6 +53,7 @@ public class Main {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {
+                            log.info("connect start at {}",socketChannel.remoteAddress());
                             socketChannel.pipeline().addLast(new NoAuthenticationRequiredChannel());
                         }
                     });
