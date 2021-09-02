@@ -1,28 +1,28 @@
-package com.example.psr;
+package com.example.psr.http;
 
+import com.example.psr.debug.ExecptionPrintHandler;
+import com.example.psr.debug.InboundPrintHandler;
+import com.example.psr.debug.OutboundPrintHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.socksx.v5.DefaultSocks5InitialRequest;
-import io.netty.handler.codec.socksx.v5.DefaultSocks5InitialResponse;
-import io.netty.handler.codec.socksx.v5.Socks5AuthMethod;
-import io.netty.handler.codec.socksx.v5.Socks5CommandRequest;
-import io.netty.handler.codec.socksx.v5.Socks5CommandRequestDecoder;
-import io.netty.handler.codec.socksx.v5.Socks5InitialRequestDecoder;
-import io.netty.handler.codec.socksx.v5.Socks5ServerEncoder;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 @Slf4j
-public class Main {
-    public static void main(String[] args) throws Exception {
+public class HttpProxyMain {
+    public static void main(String[] args) throws InterruptedException {
         CommandLineParser parser = new GnuParser();
 
         Options options = new Options();
@@ -53,23 +53,20 @@ public class Main {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {
-                            log.info("connect start at {}",socketChannel.remoteAddress());
-                            socketChannel.pipeline().addLast(new NoAuthenticationRequiredChannel());
+                            log.info("connect start at {}", socketChannel.remoteAddress());
+                            socketChannel.pipeline().addLast(new InboundPrintHandler());
+                            socketChannel.pipeline().addLast(new OutboundPrintHandler());
+                            socketChannel.pipeline().addLast(new HttpServerCodec());
+                            socketChannel.pipeline().addLast(new HttpProxyServerHandler());
+                            socketChannel.pipeline().addLast(new ExecptionPrintHandler());
                         }
                     });
             ChannelFuture channelFuture = bootstrap.bind(port).sync();
-            log.info("psr start at {} ...%n", port);
+            log.info("psr start at {} ...", port);
             channelFuture.channel().closeFuture().sync();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
     }
-
 }
-
-/*
- * curl -x http://localhost:1080 baidu.com
- * curl -x https://localhost:1080 baidu.com
- * curl -x socks5://localhost:1080 baidu.com
- */

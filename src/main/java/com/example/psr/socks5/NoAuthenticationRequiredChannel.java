@@ -1,11 +1,10 @@
-package com.example.psr;
+package com.example.psr.socks5;
 
 import com.example.psr.utils.ByteBufUtils;
 import com.example.psr.utils.ByteBufVisiable;
 import com.example.psr.utils.ToStringObject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -37,7 +36,7 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
                  *    NMETHODS field contains the number of method identifier octets that
                  *    appear in the METHODS field.
                  */
-                byte[] bytes = ByteBufUtils.readAll(msg);
+                byte[] bytes = ByteBufUtils.readAllAndReset(msg);
                 log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("client >> ", bytes)));
 
                 /*
@@ -112,7 +111,7 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
                  *
                  */
                 try {
-                    byte[] bytes = ByteBufUtils.readAll(msg);
+                    byte[] bytes = ByteBufUtils.readAllAndReset(msg);
                     log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("client >> ", bytes)));
                     StringBuilder host = new StringBuilder();
                     int port = 80;
@@ -131,8 +130,8 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
                     client = new TcpClient(host.toString(), port, new SimpleChannelInboundHandler<>() {
                         @Override
                         protected void channelRead0(ChannelHandlerContext proxyCtx, Object proxyMsg) throws Exception {
-                            byte[] bytes = ByteBufUtils.readAll((ByteBuf) proxyMsg);
-                            log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("server >> ", bytes)));
+                            byte[] bytes = ByteBufUtils.readAllAndReset((ByteBuf) proxyMsg);
+                            log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("server -> client ", bytes)));
                             ctx.writeAndFlush(Unpooled.copiedBuffer(bytes));
                         }
                     });
@@ -195,8 +194,8 @@ public class NoAuthenticationRequiredChannel extends ChannelInboundHandlerAdapte
 
             }),
             Map.entry("proxy", (ctx, msg) -> {
-                byte[] bytes = ByteBufUtils.readAll(msg);
-                log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("server >> ", bytes)));
+                byte[] bytes = ByteBufUtils.readAllAndReset(msg);
+                log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString( "client -> server ", bytes)));
                 client.send(Unpooled.copiedBuffer(bytes));
             })
     );
