@@ -11,7 +11,12 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpContentDecompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.codec.http.HttpServerCodec;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
@@ -54,9 +59,11 @@ public class HttpProxyMain {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {
                             log.info("connect start at {}", socketChannel.remoteAddress());
+                            socketChannel.pipeline().addLast(new ExecptionPrintHandler());
                             socketChannel.pipeline().addLast(new InboundPrintHandler());
                             socketChannel.pipeline().addLast(new OutboundPrintHandler());
                             socketChannel.pipeline().addLast(new HttpServerCodec());
+                            socketChannel.pipeline().addLast(new HttpObjectAggregator(1024 * 1024));
                             socketChannel.pipeline().addLast(new HttpProxyServerHandler());
                             socketChannel.pipeline().addLast(new ExecptionPrintHandler());
                         }

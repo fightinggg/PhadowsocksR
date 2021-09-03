@@ -1,47 +1,35 @@
 package com.example.psr.http;
 
-import com.example.psr.utils.ByteBufUtils;
-import com.example.psr.utils.ByteBufVisiable;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultHttpContent;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.HttpRequest;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 
 @Slf4j
-public class HttpProxyServerHandler extends SimpleChannelInboundHandler<HttpRequest> {
+public class HttpProxyServerHandler extends ChannelInboundHandlerAdapter {
     HttpClient httpClient;
 
-
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) {
-        if (msg.headers().contains("Proxy-Connection")) {
-            msg.headers().remove("Proxy-Connection");
-            URI uri = URI.create(msg.uri());
-            msg.setUri("/");
-            SimpleChannelInboundHandler<Object> handler = new SimpleChannelInboundHandler<>() {
-                @Override
-                protected void channelRead0(ChannelHandlerContext proxyCtx, Object proxyMsg) {
-                    if (proxyMsg instanceof DefaultHttpResponse) {
-                        ctx.writeAndFlush(proxyMsg);
-                    } else if (proxyMsg instanceof DefaultHttpContent) {
-                        ByteBuf content = ((DefaultHttpContent) proxyMsg).content();
-                        log.info("{}", ByteBufVisiable.toString("", ByteBufUtils.readAllAndReset(content)));
-                        log.info("{}", ByteBufVisiable.toString("", ByteBufUtils.readAllAndReset(content)));
-                        ctx.writeAndFlush(content);
-                    } else {
-                        log.error("{}", proxyMsg);
+    public void channelRead(ChannelHandlerContext ctx, Object msgObj) {
+        if (msgObj instanceof FullHttpRequest msg) {
+            if (msg.headers().contains("Proxy-Connection")) {
+                msg.headers().remove("Proxy-Connection");
+                URI uri = URI.create(msg.uri());
+                msg.setUri("/");
+                ChannelInboundHandlerAdapter handler = new ChannelInboundHandlerAdapter() {
+                    @Override
+                    public void channelRead(final ChannelHandlerContext proxyCtx, final Object proxyMsg) {
+                        if (proxyMsg instanceof FullHttpResponse) {
+                            ctx.writeAndFlush(proxyMsg);
+                        }
                     }
-                }
-
-
-            };
-            httpClient = new HttpClient(uri.getHost(), uri.getPort() == -1 ? 80 : uri.getPort(), handler);
-            httpClient.writeAndFlush(msg);
+                };
+                httpClient = new HttpClient(uri.getHost(), uri.getPort() == -1 ? 80 : uri.getPort(), handler);
+                httpClient.writeAndFlush(msg);
+            }
         }
     }
 }

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
-    <property name="level" value="${level:INFO}"/>
 
     <!-- 控制台输出 -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -12,7 +11,7 @@
     </appender>
 
 
-    <root level="${level}">
+    <root level="${level:-INFO}">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

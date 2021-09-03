@@ -5,15 +5,15 @@ import com.example.psr.debug.InboundPrintHandler;
 import com.example.psr.debug.OutboundPrintHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpClientCodec;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequest;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +26,7 @@ public class HttpClient implements Closeable {
     EventLoopGroup group;
     ChannelFuture channelFuture;
 
-    public HttpClient(String host, int port, SimpleChannelInboundHandler<Object> simpleChannelInboundHandler) {
+    public HttpClient(String host, int port, ChannelInboundHandlerAdapter simpleChannelInboundHandler) {
         try {
             Bootstrap clientBootstrap = new Bootstrap();
             group = new NioEventLoopGroup();
@@ -36,10 +36,11 @@ public class HttpClient implements Closeable {
             clientBootstrap.remoteAddress(new InetSocketAddress(host, port));
             clientBootstrap.handler(new ChannelInitializer<SocketChannel>() {
                 protected void initChannel(SocketChannel socketChannel) {
+                    socketChannel.pipeline().addLast(new ExecptionPrintHandler());
                     socketChannel.pipeline().addLast(new InboundPrintHandler());
                     socketChannel.pipeline().addLast(new OutboundPrintHandler());
                     socketChannel.pipeline().addLast(new HttpClientCodec());
-//                    socketChannel.pipeline().addLast(new HttpObjectAggregator(1024 * 1024));
+                    socketChannel.pipeline().addLast(new HttpObjectAggregator(1024 * 1024));
                     socketChannel.pipeline().addLast(simpleChannelInboundHandler);
                     socketChannel.pipeline().addLast(new ExecptionPrintHandler());
                 }
