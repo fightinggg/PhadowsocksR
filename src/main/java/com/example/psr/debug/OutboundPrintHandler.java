@@ -16,8 +16,8 @@ public class OutboundPrintHandler extends ChannelOutboundHandlerAdapter {
             ByteBuf byteBuf = (ByteBuf) msg;
             byte[] bytes = ByteBufUtils.readAllAndReset(byteBuf);
             log.debug("{}", ByteBufVisiable.toString("<< ", bytes));
-            // 下游继续写入
-            ctx.writeAndFlush(msg, promise);
         }
+        // 下游继续写入
+        ctx.writeAndFlush(msg, promise);
     }
 }

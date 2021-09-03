@@ -23,6 +23,7 @@ public class TcpClient implements Closeable {
 
     public TcpClient(String host, int port, SimpleChannelInboundHandler<?> simpleChannelInboundHandler) {
         try {
+            log.debug("connect to {}:{}", host, port);
             Bootstrap clientBootstrap = new Bootstrap();
             group = new NioEventLoopGroup();
             clientBootstrap.group(group);

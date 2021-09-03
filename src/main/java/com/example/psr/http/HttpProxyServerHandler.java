@@ -1,12 +1,11 @@
 package com.example.psr.http;
 
+import com.example.psr.https.HttpsClient;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import lombok.extern.slf4j.Slf4j;
-
-import java.net.URI;
 
 @Slf4j
 public class HttpProxyServerHandler extends ChannelInboundHandlerAdapter {
@@ -17,7 +16,14 @@ public class HttpProxyServerHandler extends ChannelInboundHandlerAdapter {
         if (msgObj instanceof FullHttpRequest msg) {
             if (msg.headers().contains("Proxy-Connection")) {
                 msg.headers().remove("Proxy-Connection");
-                URI uri = URI.create(msg.uri());
+                String host = msg.uri();
+                int port = 80;
+                if (host.contains(":")) {
+                    String[] split = host.split(":");
+                    host = split[0];
+                    port = Integer.parseInt(split[1]);
+                }
+
                 msg.setUri("/");
                 ChannelInboundHandlerAdapter handler = new ChannelInboundHandlerAdapter() {
                     @Override
@@ -27,7 +33,7 @@ public class HttpProxyServerHandler extends ChannelInboundHandlerAdapter {
                         }
                     }
                 };
-                httpClient = new HttpClient(uri.getHost(), uri.getPort() == -1 ? 80 : uri.getPort(), handler);
+                httpClient = new HttpClient(host, port, handler);
                 httpClient.writeAndFlush(msg);
             }
         }

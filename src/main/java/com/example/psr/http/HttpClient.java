@@ -26,8 +26,9 @@ public class HttpClient implements Closeable {
     EventLoopGroup group;
     ChannelFuture channelFuture;
 
-    public HttpClient(String host, int port, ChannelInboundHandlerAdapter simpleChannelInboundHandler) {
+    public HttpClient(String host, int port, ChannelInboundHandlerAdapter channelInboundHandlerAdapter) {
         try {
+            log.debug("connect to {}:{}", host, port);
             Bootstrap clientBootstrap = new Bootstrap();
             group = new NioEventLoopGroup();
             clientBootstrap.group(group);
@@ -41,7 +42,7 @@ public class HttpClient implements Closeable {
                     socketChannel.pipeline().addLast(new OutboundPrintHandler());
                     socketChannel.pipeline().addLast(new HttpClientCodec());
                     socketChannel.pipeline().addLast(new HttpObjectAggregator(1024 * 1024));
-                    socketChannel.pipeline().addLast(simpleChannelInboundHandler);
+                    socketChannel.pipeline().addLast(channelInboundHandlerAdapter);
                     socketChannel.pipeline().addLast(new ExecptionPrintHandler());
                 }
             });

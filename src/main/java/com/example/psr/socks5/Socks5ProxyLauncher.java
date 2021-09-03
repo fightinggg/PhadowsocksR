@@ -9,30 +9,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.cli.*;
 
 @Slf4j
-public class Main {
-    public static void main(String[] args) throws Exception {
-        CommandLineParser parser = new GnuParser();
-
-        Options options = new Options();
-        options.addOption("p", "port", true, "port");
-
-        CommandLine commandLine = null;
-        try {
-            commandLine = parser.parse(options, args);
-        } catch (ParseException e) {
-            String info = """
-                    could not parse your command line, please use
-                    java -jar psr.jar -port 1080
-                    java -jar psr.jar
-                    """;
-            log.info(info);
-            System.exit(-1);
-        }
-        int port = Integer.parseInt(commandLine.getOptionValue("port", "1080"));
-
+public class Socks5ProxyLauncher {
+    public static void run(int port) {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -44,19 +24,18 @@ public class Main {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {
-                            log.info("connect start at {}",socketChannel.remoteAddress());
+                            log.info("connect start at {}", socketChannel.remoteAddress());
                             socketChannel.pipeline().addLast(new NoAuthenticationRequiredChannel());
                         }
                     });
-            ChannelFuture channelFuture = bootstrap.bind(port).sync();
-            log.info("psr start at {} ...%n", port);
-            channelFuture.channel().closeFuture().sync();
+            ChannelFuture channelFuture = bootstrap.bind(port).syncUninterruptibly();
+            log.info("psr using http proxy, start at {} ...\n", port);
+            channelFuture.channel().closeFuture().syncUninterruptibly();
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
     }
-
 }
 
 /*

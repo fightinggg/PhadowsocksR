@@ -16,9 +16,9 @@ public class InboundPrintHandler extends ChannelInboundHandlerAdapter {
             ByteBuf byteBuf = (ByteBuf) msg;
             byte[] bytes = ByteBufUtils.readAllAndReset(byteBuf);
             log.debug("{}", ByteBufVisiable.toString(">> ", bytes));
-            // 下游继续读取
-            ctx.fireChannelRead(Unpooled.copiedBuffer(bytes));
         }
+        // 下游继续读取
+        ctx.fireChannelRead(msg);
     }
 
 }
