@@ -60,10 +60,10 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                         client = new TcpClient(host, port, new SimpleChannelInboundHandler<>() {
                             @Override
                             protected void channelRead0(ChannelHandlerContext proxyCtx, Object proxyMsg) throws Exception {
-                                byte[] bytes = ByteBufUtils.readAllAndReset((ByteBuf) proxyMsg);
-                                log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("server -> client ", bytes)));
-                                ctx.writeAndFlush(Unpooled.copiedBuffer(bytes));
-                                ctx.writeAndFlush(proxyMsg);
+//                                byte[] bytes = ByteBufUtils.readAllAndReset((ByteBuf) proxyMsg);
+//                                log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("server -> client ", bytes)));
+                                ctx.writeAndFlush(Unpooled.copiedBuffer((ByteBuf) proxyMsg));
+//                                ctx.writeAndFlush(proxyMsg);
                             }
                         });
                         ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK));
@@ -103,10 +103,10 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
             }),
             Map.entry("proxy", (ctx, msg) -> {
                 if (msg instanceof ByteBuf byteBuf) {
-                    byte[] bytes = ByteBufUtils.readAllAndReset(byteBuf);
-                    log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("client -> server ", bytes)));
-                    client.send(Unpooled.copiedBuffer(bytes));
+//                    byte[] bytes = ByteBufUtils.readAllAndReset(byteBuf);
+//                    log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("client -> server ", bytes)));
                     client.send(byteBuf);
+//                    client.send(byteBuf);
                 } else {
                     log.debug("error type={}", msg.getClass());
                 }
