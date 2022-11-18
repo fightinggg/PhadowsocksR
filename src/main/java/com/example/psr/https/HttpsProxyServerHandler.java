@@ -12,14 +12,23 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpVersion;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Base64;
+
 @Slf4j
 public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
     HttpsClient httpClient;
+    String password;
+
+    public HttpsProxyServerHandler(String password) {
+        this.password = password;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msgObj) {
         if (msgObj instanceof FullHttpRequest msg) {
-            if (msg.method().equals(HttpMethod.CONNECT)) {
+            String authorization = msg.headers().get("Authorization");
+            String code = authorization == null ? null : new String(Base64.getDecoder().decode(authorization.split(" ")[1]));
+            if (msg.method().equals(HttpMethod.CONNECT) && password.equals(code)) {
                 String host = msg.uri();
                 int port = 443;
                 if (host.contains(":")) {
@@ -39,6 +48,9 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                 ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK));
                 ctx.pipeline().remove(HttpServerCodec.class);
                 ctx.pipeline().remove(HttpObjectAggregator.class);
+            } else {
+                ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FORBIDDEN));
+                ctx.close();
             }
         } else if (msgObj instanceof ByteBuf byteBuf) {
             httpClient.writeAndFlush(byteBuf);

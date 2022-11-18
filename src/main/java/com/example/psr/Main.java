@@ -18,6 +18,7 @@ public class Main {
         Options options = new Options();
         options.addOption("p", "port", true, "port");
         options.addOption("", "protocol", true, "protocol");
+        options.addOption("", "password", true, "password");
 
         CommandLine commandLine = null;
         try {
@@ -27,6 +28,7 @@ public class Main {
                     could not parse your command line, please use
                     java -jar psr.jar --port 1080 --protocol http
                     java -jar psr.jar --port 1080 --protocol socks5
+                    java -jar psr.jar --port 1080 --protocol https --password root:root
                     java -jar psr.jar
                     """;
             log.info(info);
@@ -41,7 +43,8 @@ public class Main {
             case "socks5":
                 Socks5ProxyLauncher.run(port);
             case "https":
-                HttpsProxyLauncher.run(port);
+                String password = commandLine.getOptionValue("password", "root:root");
+                HttpsProxyLauncher.run(port,password);
         }
     }
 }

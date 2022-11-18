@@ -2,7 +2,7 @@ package com.example.psr.utils;
 
 public class TextUtils {
     private static boolean visiableByte(byte c) {
-        return (c >= 32 && c <= 126) || c == '\n' || c == '\r' || c == '\t';
+        return (c >= 32 && c <= 126) || c == '\n' || c == '\t';
     }
 
     public static String toString(byte[] bytes) {
