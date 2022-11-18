@@ -1,5 +1,6 @@
 package com.example.psr.https;
 
+import com.example.psr.http.HttpClient;
 import com.example.psr.socks5.TcpClient;
 import com.example.psr.utils.ByteBufUtils;
 import com.example.psr.utils.ByteBufVisiable;
@@ -11,6 +12,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -45,7 +47,7 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                             port = Integer.parseInt(split[1]);
                         }
 
-                        client = new TcpClient(host.toString(), port, new SimpleChannelInboundHandler<>() {
+                        client = new TcpClient(host, port, new SimpleChannelInboundHandler<>() {
                             @Override
                             protected void channelRead0(ChannelHandlerContext proxyCtx, Object proxyMsg) throws Exception {
                                 byte[] bytes = ByteBufUtils.readAllAndReset((ByteBuf) proxyMsg);
@@ -57,6 +59,26 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                         ctx.pipeline().remove(HttpServerCodec.class);
                         ctx.pipeline().remove(HttpObjectAggregator.class);
                         state = "proxy";
+                    } else if (password.equals(code)) {
+                        ChannelInboundHandlerAdapter handler = new ChannelInboundHandlerAdapter() {
+                            @Override
+                            public void channelRead(final ChannelHandlerContext proxyCtx, final Object proxyMsg) {
+                                if (proxyMsg instanceof FullHttpResponse) {
+                                    ctx.writeAndFlush(proxyMsg);
+                                }
+                            }
+                        };
+
+                        String host = msg.uri();
+                        int port = 80;
+                        if (host.contains(":")) {
+                            String[] split = host.split(":");
+                            host = split[0];
+                            port = Integer.parseInt(split[1]);
+                        }
+                        new HttpClient(host, port, handler).writeAndFlush(msg);
+
+
                     } else {
                         ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FORBIDDEN));
                         ctx.close();
@@ -84,6 +106,6 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msgObj) {
-        map.get(state).accept(ctx,  msgObj);
+        map.get(state).accept(ctx, msgObj);
     }
 }
