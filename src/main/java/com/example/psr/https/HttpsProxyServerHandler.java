@@ -45,8 +45,7 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                     log.info("{} {} {}", code, msg.method().name(), msg.uri());
                     if (msg.method().equals(HttpMethod.CONNECT) && password.equals(code)) {
 
-                        URI uri = URI.create(msg.uri());
-                        String host = uri.getHost();
+                        String host = msg.uri();
 
                         int port = 443;
                         if (host.contains(":")) {
