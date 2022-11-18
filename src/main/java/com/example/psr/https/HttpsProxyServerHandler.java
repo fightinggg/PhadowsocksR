@@ -20,6 +20,7 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpVersion;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.URI;
 import java.util.Base64;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -39,7 +40,10 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
 
                     log.info("{} {} {}", code, msg.method().name(), msg.uri());
                     if (msg.method().equals(HttpMethod.CONNECT) && password.equals(code)) {
-                        String host = msg.uri();
+
+                        URI uri = URI.create(msg.uri());
+                        String host = uri.getHost();
+
                         int port = 443;
                         if (host.contains(":")) {
                             String[] split = host.split(":");
@@ -69,7 +73,8 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                             }
                         };
 
-                        String host = msg.uri();
+                        URI uri = URI.create(msg.uri());
+                        String host = uri.getHost();
                         int port = 80;
                         if (host.contains(":")) {
                             String[] split = host.split(":");
