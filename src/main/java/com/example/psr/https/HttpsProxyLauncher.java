@@ -21,7 +21,7 @@ import javax.net.ssl.SSLEngine;
 
 @Slf4j
 public class HttpsProxyLauncher {
-    public static void run(int port,String password) {
+    public static void run(int port, String password) {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -38,12 +38,12 @@ public class HttpsProxyLauncher {
                             SSLEngine sslEngine = SecureSocketSslContextFactory.getServerContext().createSSLEngine();
                             sslEngine.setUseClientMode(false);
                             socketChannel.pipeline().addLast(new SslHandler(sslEngine));
-
-                            socketChannel.pipeline().addLast(new InboundPrintHandler());
-                            socketChannel.pipeline().addLast(new OutboundPrintHandler());
+//
+//                            socketChannel.pipeline().addLast(new InboundPrintHandler());
+//                            socketChannel.pipeline().addLast(new OutboundPrintHandler());
 
                             socketChannel.pipeline().addLast(new HttpServerCodec());
-                            socketChannel.pipeline().addLast(new HttpObjectAggregator(1024 * 1024));
+                            socketChannel.pipeline().addLast(new HttpObjectAggregator(100 * 1024 * 1024));
                             socketChannel.pipeline().addLast(new HttpsProxyServerHandler(password));
                             socketChannel.pipeline().addLast(new ExecptionPrintHandler());
                         }

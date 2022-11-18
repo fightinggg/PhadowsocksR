@@ -28,6 +28,8 @@ import java.util.function.BiConsumer;
 @Slf4j
 public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
     private TcpClient client;
+
+    private HttpClient httpClient;
     String password;
 
     private String state = "init";
@@ -45,6 +47,7 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                     log.info("{} {} {}", code, msg.method().name(), msg.uri());
                     if (msg.method().equals(HttpMethod.CONNECT) && password.equals(code)) {
 
+
                         String host = msg.uri();
 
                         int port = 443;
@@ -60,6 +63,7 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                                 byte[] bytes = ByteBufUtils.readAllAndReset((ByteBuf) proxyMsg);
                                 log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("server -> client ", bytes)));
                                 ctx.writeAndFlush(Unpooled.copiedBuffer(bytes));
+                                ctx.writeAndFlush(proxyMsg);
                             }
                         });
                         ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK));
@@ -84,7 +88,8 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                             host = split[0];
                             port = Integer.parseInt(split[1]);
                         }
-                        new HttpClient(host, port, handler).writeAndFlush(msg);
+                        httpClient = new HttpClient(host, port, handler);
+                        httpClient.writeAndFlush(msg);
 
 
                     } else {
@@ -101,6 +106,7 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                     byte[] bytes = ByteBufUtils.readAllAndReset(byteBuf);
                     log.debug("{}", new ToStringObject(() -> ByteBufVisiable.toString("client -> server ", bytes)));
                     client.send(Unpooled.copiedBuffer(bytes));
+                    client.send(byteBuf);
                 } else {
                     log.debug("error type={}", msg.getClass());
                 }
