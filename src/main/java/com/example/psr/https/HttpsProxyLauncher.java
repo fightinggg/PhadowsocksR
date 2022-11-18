@@ -35,8 +35,6 @@ public class HttpsProxyLauncher {
                         protected void initChannel(SocketChannel socketChannel) {
                             log.info("connect start at {}", socketChannel.remoteAddress());
                             socketChannel.pipeline().addLast(new ExecptionPrintHandler());
-//                            socketChannel.pipeline().addLast(new InboundPrintHandler());
-//                            socketChannel.pipeline().addLast(new OutboundPrintHandler());
                             SSLEngine sslEngine = SecureSocketSslContextFactory.getServerContext().createSSLEngine();
                             sslEngine.setUseClientMode(false);
                             socketChannel.pipeline().addLast(new SslHandler(sslEngine));

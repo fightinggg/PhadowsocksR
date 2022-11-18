@@ -25,7 +25,7 @@ public class HttpsClient implements Closeable {
     ChannelFuture channelFuture;
 
     public HttpsClient(String host, int port, ChannelInboundHandlerAdapter channelInboundHandlerAdapter) {
-        log.debug("connect to {}:{}", host, port);
+        log.info("connect to {}:{}", host, port);
         Bootstrap clientBootstrap = new Bootstrap();
         group = new NioEventLoopGroup();
         clientBootstrap.group(group);

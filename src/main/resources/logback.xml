@@ -11,7 +11,7 @@
     </appender>
 
 
-    <root level="${level:-DEBUG}">
+    <root level="${level:-INFO}">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

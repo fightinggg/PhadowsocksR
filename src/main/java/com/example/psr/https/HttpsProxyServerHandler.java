@@ -38,6 +38,10 @@ public class HttpsProxyServerHandler extends ChannelInboundHandlerAdapter {
                     String authorization = msg.headers().get("Proxy-Authorization");
                     String code = authorization == null ? null : new String(Base64.getDecoder().decode(authorization.split(" ")[1]));
 
+                    msg.headers().remove("Proxy-Authorization");
+                    msg.headers().remove("Proxy-Connection");
+
+
                     log.info("{} {} {}", code, msg.method().name(), msg.uri());
                     if (msg.method().equals(HttpMethod.CONNECT) && password.equals(code)) {
 
