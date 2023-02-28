@@ -1,4 +1,4 @@
-package com.example.psr.http;
+package com.example.psr.client;
 
 import com.example.psr.debug.ExecptionPrintHandler;
 import com.example.psr.debug.InboundPrintHandler;

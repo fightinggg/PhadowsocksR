@@ -1,4 +1,4 @@
-package com.example.psr.socks5;
+package com.example.psr.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;

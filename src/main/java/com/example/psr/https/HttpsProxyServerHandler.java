@@ -1,10 +1,7 @@
 package com.example.psr.https;
 
-import com.example.psr.http.HttpClient;
-import com.example.psr.socks5.TcpClient;
-import com.example.psr.utils.ByteBufUtils;
-import com.example.psr.utils.ByteBufVisiable;
-import com.example.psr.utils.ToStringObject;
+import com.example.psr.client.HttpClient;
+import com.example.psr.client.TcpClient;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;

@@ -1,6 +1,6 @@
 package com.example.psr.http;
 
-import com.example.psr.https.HttpsClient;
+import com.example.psr.client.HttpClient;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;

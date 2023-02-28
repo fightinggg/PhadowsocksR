@@ -1,5 +1,6 @@
 package com.example.psr.socks5;
 
+import com.example.psr.client.TcpClient;
 import com.example.psr.utils.ByteBufUtils;
 import com.example.psr.utils.ByteBufVisiable;
 import com.example.psr.utils.ToStringObject;
