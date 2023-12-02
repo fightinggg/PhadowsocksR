@@ -14,6 +14,8 @@ Polin'S ShadowsocksR, Support For Http Proxy and Socket5 Proxy
 # How To Use
 ```shell
 docker run -d -p 1080:1080 fightinggg/psr:master
+# OR
+docker run -d -p 1080:1080 fightinggg/psr:master java -jar psr.jar --port 1080 --protocol https --password fightinggg:fightinggg
 ```
 
 # How To Debug
